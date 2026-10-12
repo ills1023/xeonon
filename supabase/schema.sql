@@ -144,17 +144,17 @@ as $$ begin
   if not exists(select 1 from public.orders where id=p_order_id and assigned_to=auth.uid()) then raise exception 'Order is not assigned to you'; end if;
   update public.orders set status=p_status,updated_at=now() where id=p_order_id;
 end $$;
-create or replace function public.set_employee_role(p_user_id uuid, p_role text)
+create or replace function public.set_team_role(p_user_id uuid, p_role text)
 returns void language plpgsql security definer set search_path=public
 as $$ begin
   if not public.is_creator() then raise exception 'Only the owner can manage employee access'; end if;
-  if p_role not in ('customer','employee') then raise exception 'Role must be customer or employee'; end if;
+  if p_role not in ('customer','employee','manager') then raise exception 'Role must be customer, employee, or manager'; end if;
   update public.profiles set role=p_role where id=p_user_id and role <> 'creator';
   if not found then raise exception 'User not found or protected owner account'; end if;
 end $$;
 grant execute on function public.assign_order(uuid,uuid) to authenticated;
 grant execute on function public.update_assigned_order_status(uuid,text) to authenticated;
-grant execute on function public.set_employee_role(uuid,text) to authenticated;
+grant execute on function public.set_team_role(uuid,text) to authenticated;
 
 grant select on public.products to anon,authenticated;
 grant insert,update,delete on public.products to authenticated;
