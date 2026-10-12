@@ -1,0 +1,17 @@
+node_modules/
+dist/
+products/
+.dev.vars
+.dev.vars.*
+!.dev.vars.example
+*.log
+*.png
+wrangler.toml
+config.js
+functions/
+supabase/
+src/app.js
+src/backend.js
+src/chat.js
+src/i18n.js
+src/product.js
