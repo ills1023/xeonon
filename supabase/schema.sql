@@ -198,3 +198,23 @@ create policy "customer_read_own_model" on storage.objects for select to authent
 -- update public.profiles set role='creator' where id='YOUR_AUTH_USER_UUID';
 -- Only use your own account UUID. This assignment is deliberately manual for first-owner bootstrap.
 
+-- Editable homepage content, readable by storefront visitors and writable only by creator.
+create table if not exists public.site_content (
+  id integer primary key check (id = 1),
+  content jsonb not null default '{}'::jsonb,
+  updated_at timestamptz not null default now()
+);
+alter table public.site_content enable row level security;
+drop policy if exists "site_content_public_read" on public.site_content;
+create policy "site_content_public_read" on public.site_content for select to anon,authenticated using (true);
+grant select on public.site_content to anon,authenticated;
+create or replace function public.save_site_content(p_content jsonb)
+returns void language plpgsql security definer set search_path=public
+as $$ begin
+  if not public.is_creator() then raise exception 'Only the creator can publish homepage changes'; end if;
+  if pg_column_size(p_content) > 100000 then raise exception 'Site content is too large'; end if;
+  insert into public.site_content(id,content,updated_at) values(1,p_content,now())
+    on conflict(id) do update set content=excluded.content,updated_at=now();
+end $$;
+grant execute on function public.save_site_content(jsonb) to authenticated;
+
