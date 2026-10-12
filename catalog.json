@@ -13,7 +13,7 @@
     },
     "category": "print",
     "price": 24,
-    "image": "images/headphone-dock.webp",
+    "image": "images/headphone-dock.svg",
     "model": null,
     "dimensions": {
       "width": 70,
@@ -36,7 +36,7 @@
     },
     "category": "laser",
     "price": 12,
-    "image": "images/personal-mark.webp",
+    "image": "images/personal-mark.svg",
     "model": null,
     "dimensions": {
       "width": 50,
@@ -59,7 +59,7 @@
     },
     "category": "resin",
     "price": 19,
-    "image": "images/architect-miniature.webp",
+    "image": "images/architect-miniature.svg",
     "model": null,
     "dimensions": {
       "width": 40,
@@ -105,7 +105,7 @@
     },
     "category": "laser",
     "price": 16,
-    "image": "images/personal-mark.webp",
+    "image": "images/personal-mark.svg",
     "model": null,
     "dimensions": {
       "width": 90,
@@ -128,7 +128,7 @@
     },
     "category": "resin",
     "price": 32,
-    "image": "images/architect-miniature.webp",
+    "image": "images/architect-miniature.svg",
     "model": null,
     "dimensions": {
       "width": 65,
@@ -151,7 +151,7 @@
     },
     "category": "print",
     "price": 14,
-    "image": "images/hex-cable-clips.webp",
+    "image": "images/hex-cable-clips.svg",
     "model": "clips.stl",
     "dimensions": {
       "width": 60,
@@ -174,7 +174,7 @@
     },
     "category": "laser",
     "price": 21,
-    "image": "images/pet-name-tag.webp",
+    "image": "images/pet-name-tag.svg",
     "model": null,
     "dimensions": {
       "width": 65,
@@ -197,7 +197,7 @@
     },
     "category": "print",
     "price": 9,
-    "image": "images/hex-cable-clips.webp",
+    "image": "images/hex-cable-clips.svg",
     "model": "clips.stl",
     "dimensions": {
       "width": 30,
@@ -220,7 +220,7 @@
     },
     "category": "print",
     "price": 22,
-    "image": "images/headphone-dock.webp",
+    "image": "images/headphone-dock.svg",
     "model": "dock_headphones.stl",
     "dimensions": {
       "width": 85,
@@ -243,7 +243,7 @@
     },
     "category": "laser",
     "price": 11,
-    "image": "images/pet-name-tag.webp",
+    "image": "images/pet-name-tag.svg",
     "model": null,
     "dimensions": {
       "width": 36,
@@ -266,7 +266,7 @@
     },
     "category": "resin",
     "price": 27,
-    "image": "images/architect-miniature.webp",
+    "image": "images/architect-miniature.svg",
     "model": null,
     "dimensions": {
       "width": 65,
@@ -312,7 +312,7 @@
     },
     "category": "laser",
     "price": 18,
-    "image": "images/personal-mark.webp",
+    "image": "images/personal-mark.svg",
     "model": null,
     "dimensions": {
       "width": 90,
@@ -335,7 +335,7 @@
     },
     "category": "resin",
     "price": 24,
-    "image": "images/architect-miniature.webp",
+    "image": "images/architect-miniature.svg",
     "model": null,
     "dimensions": {
       "width": 80,
@@ -358,7 +358,7 @@
     },
     "category": "laser",
     "price": 25,
-    "image": "images/personal-mark.webp",
+    "image": "images/personal-mark.svg",
     "model": null,
     "dimensions": {
       "width": 100,
