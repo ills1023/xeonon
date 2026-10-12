@@ -8,7 +8,7 @@ if(!output.startsWith(root+sep))throw new Error('Build output must stay inside t
 await import('./generate-product-pages.mjs');
 await rm(output,{recursive:true,force:true});
 await mkdir(output,{recursive:true});
-for(const path of ['index.html','product.html','team.html','404.html','style.css','product.css','catalog.json','images','products','clips.stl','dock_headphones.stl','src/storefront.js','src/card-viewer.js','src/product-page.js','src/team.js'])
+for(const path of ['index.html','product.html','team.html','404.html','style.css','product.css','catalog.json','images','clips.stl','dock_headphones.stl','src/storefront.js','src/card-viewer.js','src/product-page.js','src/team.js'])
   await cp(resolve(root,path),resolve(output,path),{recursive:true,force:true});
 let localConfig={};
 try {
