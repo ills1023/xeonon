@@ -9,10 +9,10 @@ FORMA is a responsive product catalogue for a small-batch design workshop. It ke
 - Interactive STL preview for included models and a browser-local STL preview for custom projects.
 - Russian, German, and English interface.
 - A basket that persists in the browser and can export a plain-text request.
-- A Supabase-backed portal at `/team.html`: customers submit and follow requests, employees see only assigned orders, managers assign work, and the owner controls account roles.
+- A Supabase-backed portal at `/team.html`: customers submit and follow requests, employees see only assigned orders, managers assign work, and the owner manages roles and edits products, images, and STL models.
 - Responsive layout, keyboard focus indicators, reduced-motion support, and a custom 404 page.
 
-The catalogue, product pages, theme, favourites, and basket work without an account, API key, or external database. Customer STL files stay on the customer's device. A request download is prepared locally; the page does not claim it was sent to the seller.
+The storefront uses the built-in catalogue when the database has not been configured or seeded. After the owner imports it, published catalog changes load from Supabase and can be managed without editing files. Customer STL files stay on the customer's device. A request download is prepared locally; the page does not claim it was sent to the seller.
 
 ## Edit products
 
@@ -34,7 +34,7 @@ npm run dev
 
 ## Team portal setup
 
-Run `supabase/schema.sql` in the Supabase SQL Editor. Promote the owner's first account to `creator` using the bootstrap SQL comment at the end of that schema. The Russian setup and order-assignment guide is in [TUTORIAL_ORDERS_RU.md](TUTORIAL_ORDERS_RU.md). The owner can then assign `employee` or `manager` roles from `/team.html`.
+Run `supabase/schema.sql` in the Supabase SQL Editor. Promote the owner's first account to `creator` using the bootstrap SQL comment at the end of that schema. The Russian guide covers owner setup, the product editor, and order assignment: [TUTORIAL_ORDERS_RU.md](TUTORIAL_ORDERS_RU.md).
 
 The team portal supports customer request submission, owner-managed employee access, manager assignment, and employee status updates. It does not process payment or shipping for requests created in that portal.
 
