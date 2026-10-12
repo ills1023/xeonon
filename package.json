@@ -1,0 +1,12 @@
+{
+  "name": "forma-object-marketplace",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "build": "node scripts/build-site.mjs",
+    "dev": "npm run build && python -m http.server 8787 --directory dist"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
