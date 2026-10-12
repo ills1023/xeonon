@@ -34,7 +34,7 @@
       render();renderBasket();
     }catch{}
   }
-  async function getDb(){if(db)return db;if(!config.supabaseUrl||!config.supabaseAnonKey)return null;const {createClient}=await import('https://esm.sh/@supabase/supabase-js@2');db=createClient(config.supabaseUrl,config.supabaseAnonKey);return db;}
+  async function getDb(){if(db)return db;if(!config.supabaseUrl||!config.supabaseAnonKey)return null;try{const {createClient}=await import('https://esm.sh/@supabase/supabase-js@2');db=createClient(config.supabaseUrl,config.supabaseAnonKey);return db;}catch{return null;}}
   function contentText(key){return siteContent.texts?.[key]?.[lang]||siteTextDefaults[key]?.[lang]||'';}
   function applySiteContent(){
     for(const [key,selector] of Object.entries({heroTitle:'.hero h1',heroText:'.hero-copy>p',catalogTitle:'#catalog h2',catalogText:'#catalog .section-heading p',customTitle:'#custom h2',customText:'#custom p',aboutTitle:'#about h2'})){
