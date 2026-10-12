@@ -10,6 +10,15 @@ let db;
 let user;
 let profile;
 let creatorProducts = [];
+let theme = (() => { try { return JSON.parse(localStorage.getItem('forma-theme-v1')) || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'); } catch { return 'light'; } })();
+
+function applyTheme() {
+  document.documentElement.dataset.theme = theme;
+  $('teamThemeToggle').setAttribute('aria-pressed', String(theme === 'dark'));
+  $('teamThemeToggle').textContent = theme === 'dark' ? '☼' : '◐';
+  $('teamThemeToggle').setAttribute('aria-label', theme === 'dark' ? 'Светлая тема' : 'Тёмная тема');
+  try { localStorage.setItem('forma-theme-v1', JSON.stringify(theme)); } catch {}
+}
 
 async function setup() {
   if (!config.supabaseUrl || !config.supabaseAnonKey) {
@@ -70,7 +79,12 @@ function renderOrder(order, email, canAssign, employees) {
   const date = new Date(order.created_at).toLocaleString('ru-RU');
   const details = (order.items || []).map((item) => {
     const title = typeof item.title === 'string' ? item.title : 'Заказ';
-    return `${escapeHtml(title)}${item.quantity > 1 ? ` × ${Number(item.quantity)}` : ''}`;
+    const custom = item.raw_cost != null
+      ? `<small class="order-cost">Материал: ${escapeHtml(String(item.material_amount))} ${escapeHtml(item.material_unit || '')} · сырьё ${Number(item.raw_cost).toFixed(2)} € + наценка 60% = ${Number(item.unit_price).toFixed(2)} €</small>`
+      : '';
+    const description = item.description ? `<small class="order-description">${escapeHtml(item.description)}</small>` : '';
+    const model = item.model_url ? `<a class="order-model-link" href="${escapeHtml(item.model_url)}" target="_blank" rel="noopener">Скачать STL: ${escapeHtml(item.model_file || 'модель')}</a>` : (item.model_file ? `<small>Файл модели: ${escapeHtml(item.model_file)}</small>` : '');
+    return `<span class="order-item">${escapeHtml(title)}${item.quantity > 1 ? ` × ${Number(item.quantity)}` : ''}${description}${custom}${model}</span>`;
   }).join('<br>') || 'Заказ';
   const workflow = canAssign
     ? `<label>Исполнитель<select data-assignee="${order.id}"><option value="">Не назначен</option>${employees.map((person) => `<option value="${person.id}" ${order.assigned_to === person.id ? 'selected' : ''}>${escapeHtml(person.email)}</option>`).join('')}</select></label><button class="button quiet" type="button" data-save-assignee="${order.id}">Сохранить назначение</button>`
@@ -99,6 +113,13 @@ async function loadStaffOrders(canAssign) {
   if (ordersResult.error) throw ordersResult.error;
   if (employeesResult.error) throw employeesResult.error;
   const orders = ordersResult.data || [];
+  await Promise.all(orders.map(async (order) => {
+    for (const item of order.items || []) {
+      if (!item.model_path) continue;
+      const { data } = await db.storage.from('customer-models').createSignedUrl(item.model_path, 3600);
+      if (data?.signedUrl) item.model_url = data.signedUrl;
+    }
+  }));
   let customers = [];
   if (orders.length) {
     const ids = [...new Set(orders.map((order) => order.user_id))];
@@ -329,4 +350,6 @@ $('signOut').addEventListener('click', async () => {
 });
 
 setup().catch(showError);
+applyTheme();
+$('teamThemeToggle').addEventListener('click', () => { theme = theme === 'dark' ? 'light' : 'dark'; applyTheme(); });
 
