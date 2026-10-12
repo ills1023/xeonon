@@ -175,8 +175,8 @@ drop policy if exists "members_send_support_messages" on public.support_messages
 create policy "members_send_support_messages" on public.support_messages for insert to authenticated with check (sender_id=auth.uid() and (public.has_order_role() or exists(select 1 from public.support_conversations c where c.id=conversation_id and c.customer_id=auth.uid() and c.status='open')));
 
 insert into storage.buckets(id,name,public,file_size_limit,allowed_mime_types)
-values ('catalog','catalog',true,52428800,array['image/jpeg','image/png','image/webp','model/stl','application/sla','application/vnd.ms-pki.stl'])
-on conflict(id) do update set public=true,file_size_limit=52428800;
+values ('catalog','catalog',true,52428800,array['image/jpeg','image/png','image/webp','image/svg+xml','model/stl','application/sla','application/vnd.ms-pki.stl','application/octet-stream'])
+on conflict(id) do update set public=true,file_size_limit=52428800,allowed_mime_types=excluded.allowed_mime_types;
 insert into storage.buckets(id,name,public,file_size_limit,allowed_mime_types)
 values ('customer-models','customer-models',false,26214400,array['model/stl','application/sla','application/vnd.ms-pki.stl','application/octet-stream'])
 on conflict(id) do update set public=false,file_size_limit=26214400;
