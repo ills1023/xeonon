@@ -177,7 +177,6 @@ function buildViewer(canvas) {
     camera.position.z = Math.max(2.7, Math.min(5.2, camera.position.z + Math.sign(event.deltaY) * 0.18));
     camera.updateProjectionMatrix();
   }, { passive: false });
-  canvas.addEventListener('click', (event) => { event.preventDefault(); event.stopPropagation(); });
   const visibility = new IntersectionObserver(([entry]) => {
     active = entry.isIntersecting;
     if (active && !frame) animate();
