@@ -218,3 +218,18 @@ as $$ begin
 end $$;
 grant execute on function public.save_site_content(jsonb) to authenticated;
 
+-- Let the customer, the assigned employee, and order managers retrieve private STL attachments.
+drop policy if exists "customer_read_own_model" on storage.objects;
+create policy "customer_read_own_model" on storage.objects for select to authenticated using (
+  bucket_id='customer-models'
+  and (
+    (storage.foldername(name))[1]=auth.uid()::text
+    or public.has_order_role()
+    or exists (
+      select 1 from public.orders o
+      where o.assigned_to=auth.uid()
+        and o.items @> jsonb_build_array(jsonb_build_object('model_path',name))
+    )
+  )
+);
+
