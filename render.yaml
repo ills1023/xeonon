@@ -5,6 +5,11 @@ services:
     buildCommand: npm run build
     staticPublishPath: ./dist
     autoDeploy: true
+    envVars:
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_ANON_KEY
+        sync: false
     headers:
       - path: /*
         name: X-Content-Type-Options
@@ -18,3 +23,4 @@ services:
       - path: /*
         name: Permissions-Policy
         value: camera=(), microphone=(), geolocation=()
+
