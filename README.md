@@ -9,6 +9,7 @@ FORMA is a responsive product catalogue for a small-batch design workshop. It ke
 - Interactive STL preview for included models and a browser-local STL preview for custom projects.
 - Russian, German, and English interface.
 - A basket that persists in the browser and can export a plain-text request.
+- A Supabase-backed client and team portal at `/team.html` for customer requests, employee assignments, and order status updates.
 - Responsive layout, keyboard focus indicators, reduced-motion support, and a custom 404 page.
 
 The catalogue, product pages, theme, favourites, and basket work without an account, API key, or external database. Customer STL files stay on the customer's device. A request download is prepared locally; the page does not claim it was sent to the seller.
@@ -29,8 +30,15 @@ npm run dev
 
 ## Render
 
-`render.yaml` defines a Render Static Site with `npm run build` as its build command and `dist` as its publish directory. The included response headers add basic browser security protections. Connect the GitHub repository in Render and create the Static Site from its Blueprint; future pushes to the selected branch can trigger automatic deployments. See [Render's Static Site guide](https://render.com/docs/static-sites) and [Blueprint YAML reference](https://render.com/docs/blueprint-spec).
+`render.yaml` defines a Render Static Site with `npm run build` as its build command and `dist` as its publish directory. Set `SUPABASE_URL` and `SUPABASE_ANON_KEY` in the Render service environment; the build generates `dist/config.js` from those variables. For an existing Blueprint, add both variables in the Render Dashboard's Environment tab. See [Render's Static Site guide](https://render.com/docs/static-sites) and [Blueprint YAML reference](https://render.com/docs/blueprint-spec).
+
+## Team portal setup
+
+Set the Supabase URL and public anon key in `config.js`, then run `supabase/schema.sql` in the Supabase SQL Editor. Promote the owner's first account to `creator` using the bootstrap SQL comment at the end of that schema. The Russian setup and order-assignment guide is in [TUTORIAL_ORDERS_RU.md](TUTORIAL_ORDERS_RU.md).
+
+The team portal supports customer request submission, owner-managed employee access, manager assignment, and employee status updates. It does not process payment or shipping for requests created in that portal.
 
 ## Before accepting real orders
 
-This is a polished catalogue and local basket, not a complete transactional marketplace. It does not provide shared accounts or roles, server-side order records, payment processing, live Shippo rates, shipping labels, or a staffed support inbox. The earlier backend stubs are deliberately outside the Render static build. Connect and secure a backend and approved providers before advertising checkout, collecting customer addresses, or promising fulfilment. Add the real business identity, contact details, privacy notice, shipping terms, and returns policy before publishing to customers.
+The main storefront basket is still browser-local. The `/team.html` portal stores customer requests and assignments in Supabase, but does not collect shipping addresses or process payments and labels. Configure and secure the approved payment and shipping providers before promising checkout or fulfilment. Add the real business identity, contact details, privacy notice, shipping terms, and returns policy before publishing to customers.
+
