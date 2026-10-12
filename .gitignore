@@ -9,9 +9,11 @@ products/
 wrangler.toml
 config.js
 functions/
-supabase/
+supabase/*
+!supabase/schema.sql
 src/app.js
 src/backend.js
 src/chat.js
 src/i18n.js
 src/product.js
+
