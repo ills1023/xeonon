@@ -1,4 +1,4 @@
-(() => {
+(async () => {
   'use strict';
   const $ = id => document.getElementById(id);
   let product = JSON.parse($('productData').textContent || '{}');
@@ -27,6 +27,18 @@
     document.title=`${title} — FORMA`;$('crumbTitle').textContent=title;$('title').textContent=title;$('description').textContent=description;$('category').textContent=category(product.category);$('price').textContent=money(product.price);$('material').textContent=category(product.category);$('weight').textContent=`${product.weight||0.1} kg`;$('dimensions').textContent=`${product.dimensions?.width??'—'} × ${product.dimensions?.depth??'—'} × ${product.dimensions?.height??'—'} mm`;$('viewerHelp').textContent=t('turn');
   }
   function category(value){const key={print:{ru:'3D-печать',en:'3D printed',de:'3D-Druck'},resin:{ru:'Фотополимер',en:'Resin',de:'Kunstharz'},laser:{ru:'Лазерная гравировка',en:'Laser engraving',de:'Lasergravur'}};return key[value]?.[language]||'FORMA'}
+  async function resolveCatalogProduct(slug){
+    const config=window.FORMA_CONFIG||{};
+    if(config.supabaseUrl&&config.supabaseAnonKey){
+      try{
+        const {createClient}=await import('https://esm.sh/@supabase/supabase-js@2');
+        const db=createClient(config.supabaseUrl,config.supabaseAnonKey);
+        const {data,error}=await db.from('products').select('slug,title,description,category,price,weight_kg,dimensions,image_url,model_url,published').eq('published',true);
+        if(!error&&data?.length){const row=data.find(item=>item.slug===slug);return row?{slug:row.slug,title:row.title,description:row.description,category:row.category,price:Number(row.price),weight:Number(row.weight_kg),dimensions:row.dimensions||{},image:row.image_url,model:row.model_url}:null;}
+      }catch{}
+    }
+    try{const response=await fetch('./catalog.json');if(!response.ok)return null;const catalog=await response.json();return catalog.find(item=>item.slug===slug)||null}catch{return null}
+  }
   const canvas=$('modelCanvas'),ctx=canvas.getContext('2d'),message=$('viewerMessage');let triangles=[],bounds=null,yaw=-.62,pitch=.45,zoom=1,drag=null;
   function parseSTL(buffer){const view=new DataView(buffer),count=buffer.byteLength>=84?view.getUint32(80,true):0;if(count&&84+count*50<=buffer.byteLength){const result=[];for(let i=0;i<count;i++){const base=84+i*50,v=[];for(let j=0;j<3;j++){const o=base+12+j*12;v.push([view.getFloat32(o,true),view.getFloat32(o+4,true),view.getFloat32(o+8,true)])}result.push(v)}return result}const text=new TextDecoder().decode(buffer),result=[];let tri=[];for(const match of text.matchAll(/vertex\s+([-\d.e+]+)\s+([-\d.e+]+)\s+([-\d.e+]+)/gi)){tri.push(match.slice(1).map(Number));if(tri.length===3){result.push(tri);tri=[]}}if(!result.length)throw Error('Invalid STL');return result}
   function setModel(raw){try{triangles=parseSTL(raw);if(triangles.length>5000){const step=Math.ceil(triangles.length/5000);triangles=triangles.filter((_,i)=>i%step===0)}const min=[Infinity,Infinity,Infinity],max=[-Infinity,-Infinity,-Infinity];triangles.flat().forEach(v=>v.forEach((n,i)=>{min[i]=Math.min(min[i],n);max[i]=Math.max(max[i],n)}));bounds={center:min.map((n,i)=>(n+max[i])/2),span:Math.max(...min.map((n,i)=>max[i]-n),1)};message.hidden=true;canvas.style.display='block';resize()}catch{message.hidden=false;message.textContent=t('modelError')}}
@@ -40,6 +52,9 @@
   $('downloadRequest').addEventListener('click',()=>{const text=`FORMA — ${t('project')}\n\n${t('describeProject')}:\n${$('projectDescription').value.trim()||'—'}\n\nSTL: ${$('customModel').files?.[0]?.name||'не приложен'}\nДата: ${new Date().toLocaleDateString(language)}`;const blob=new Blob([text],{type:'text/plain;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='forma-project-request.txt';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);$('customMessage').textContent=t('requestDownloaded')});
   canvas.addEventListener('pointerdown',e=>{drag=[e.clientX,e.clientY];canvas.setPointerCapture(e.pointerId)});canvas.addEventListener('pointermove',e=>{if(!drag)return;yaw+=(e.clientX-drag[0])*.008;pitch=Math.max(-1.45,Math.min(1.45,pitch+(e.clientY-drag[1])*.008));drag=[e.clientX,e.clientY];draw()});canvas.addEventListener('pointerup',()=>drag=null);canvas.addEventListener('pointercancel',()=>drag=null);canvas.addEventListener('wheel',e=>{e.preventDefault();zoom=Math.max(.5,Math.min(3,zoom*(e.deltaY>0?.92:1.08)));draw()},{passive:false});canvas.addEventListener('dblclick',()=>{yaw=-.62;pitch=.45;zoom=1;draw()});new ResizeObserver(resize).observe($('viewer'));
   $('year').textContent=new Date().getFullYear();$('themeToggle').textContent=theme==='dark'?'☼':'◐';setTheme();translate();const basket=read('forma-basket-v1',{});$('cartCount').textContent=Object.values(basket).reduce((a,b)=>a+b,0);
-  if(product.slug){loadProductModel()}else if(new URLSearchParams(location.search).get('slug')==='custom-request'){product={slug:'custom-request',title:{ru:'Индивидуальный проект',en:'Custom project',de:'Individuelles Projekt'},description:{ru:'Опиши свою идею и добавь STL. Предпросмотр и файл останутся на твоём устройстве.',en:'Describe your idea and add an STL. Preview and file stay on your device.',de:'Beschreibe deine Idee und füge eine STL-Datei hinzu. Vorschau und Datei bleiben auf deinem Gerät.'}};translate();message.textContent=t('noModel')}else translate();
+  const requestedSlug=new URLSearchParams(location.search).get('slug');
+  if(requestedSlug==='custom-request'){product={slug:'custom-request',title:{ru:'Индивидуальный проект',en:'Custom project',de:'Individuelles Projekt'},description:{ru:'Опиши свою идею и добавь STL. Предпросмотр и файл останутся на твоём устройстве.',en:'Describe your idea and add an STL. Preview and file stay on your device.',de:'Beschreibe deine Idee und füge eine STL-Datei hinzu. Vorschau und Datei bleiben auf deinem Gerät.'}};translate();message.textContent=t('noModel')}
+  else if(requestedSlug){product=await resolveCatalogProduct(requestedSlug)||{};translate();if(product.slug)loadProductModel()}
+  else if(product.slug){translate();loadProductModel()}else translate();
 })();
 
