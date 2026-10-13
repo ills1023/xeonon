@@ -132,6 +132,11 @@ function buildViewer(canvas) {
   const texture = makeMaterialTexture(spec.texture);
   const material = new THREE.MeshStandardMaterial({ map: texture, color: spec.color, metalness: spec.metalness, roughness: spec.roughness });
   const modelUrl = canvas.dataset.model;
+  const modelExtension = modelUrl ? new URL(modelUrl, location.href).pathname.split('.').pop().toLowerCase() : '';
+  if (modelUrl && modelExtension !== 'stl') {
+    canvas.style.display = 'none';
+    return;
+  }
   if (modelUrl) {
     new STLLoader().load(modelUrl, (raw) => {
       const geometry = fitGeometry(withGeneratedUv(raw));
