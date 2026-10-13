@@ -69,3 +69,5 @@
 .viewer-help{line-height:1.6}
 @media(max-width:560px){.viewer-materials{gap:8px;padding:11px}.viewer-material-buttons{gap:6px}.viewer-material-buttons button{padding:6px 8px}.material-reset{font-size:9px}}
 
+.swatch-source{display:grid;place-items:center;background:radial-gradient(circle,#c9f254 0 25%,#596740 28% 44%,#d9ded0 47% 100%);color:#28311b;font-style:normal;font-size:11px}
+
