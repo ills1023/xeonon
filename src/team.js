@@ -83,9 +83,19 @@ function renderOrder(order, email, canAssign, employees) {
       ? `<small class="order-cost">Материал: ${escapeHtml(String(item.material_amount))} ${escapeHtml(item.material_unit || '')} · сырьё ${Number(item.raw_cost).toFixed(2)} € + наценка 60% = ${Number(item.unit_price).toFixed(2)} €</small>`
       : '';
     const description = item.description ? `<small class="order-description">${escapeHtml(item.description)}</small>` : '';
+    const dimensions = item.dimensions_mm && Object.values(item.dimensions_mm).some(Boolean)
+      ? `<small class="order-description">Габариты: ${Object.values(item.dimensions_mm).map((value) => value ? `${Number(value)} мм` : '—').join(' × ')}</small>` : '';
+    const specs = [
+      item.project_type && `Тип: ${escapeHtml(item.project_type)}`,
+      item.intended_use && `Назначение: ${escapeHtml(item.intended_use)}`,
+      item.technology && `Производство: ${escapeHtml(item.technology)}`,
+      item.color && `Цвет: ${escapeHtml(item.color)}`,
+      item.finish && `Финиш: ${escapeHtml(item.finish)}`,
+      item.due_date && `Желаемый срок: ${escapeHtml(item.due_date)}`
+    ].filter(Boolean).map((value) => `<small class="order-description">${value}</small>`).join('');
     const laser = item.laser_design?.text ? `<small class="order-description">Гравировка: ${escapeHtml(item.laser_design.text)} · ${escapeHtml(item.laser_design.surface || '')} · ${escapeHtml(item.laser_design.font || '')} · ${Number(item.laser_design.font_size || 0)} px</small>` : '';
     const model = item.model_url ? `<a class="order-model-link" href="${escapeHtml(item.model_url)}" target="_blank" rel="noopener">Скачать STL: ${escapeHtml(item.model_file || 'модель')}</a>` : (item.model_file ? `<small>Файл модели: ${escapeHtml(item.model_file)}</small>` : '');
-    return `<span class="order-item">${escapeHtml(title)}${item.quantity > 1 ? ` × ${Number(item.quantity)}` : ''}${description}${laser}${custom}${model}</span>`;
+    return `<span class="order-item">${escapeHtml(title)}${item.quantity > 1 ? ` × ${Number(item.quantity)}` : ''}${description}${specs}${dimensions}${laser}${custom}${model}</span>`;
   }).join('<br>') || 'Заказ';
   const workflow = canAssign
     ? `<label>Исполнитель<select data-assignee="${order.id}"><option value="">Не назначен</option>${employees.map((person) => `<option value="${person.id}" ${order.assigned_to === person.id ? 'selected' : ''}>${escapeHtml(person.email)}</option>`).join('')}</select></label><button class="button quiet" type="button" data-save-assignee="${order.id}">Сохранить назначение</button>`
