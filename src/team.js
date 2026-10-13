@@ -94,7 +94,7 @@ function renderOrder(order, email, canAssign, employees) {
       item.due_date && `Желаемый срок: ${escapeHtml(item.due_date)}`
     ].filter(Boolean).map((value) => `<small class="order-description">${value}</small>`).join('');
     const laser = item.laser_design?.text ? `<small class="order-description">Гравировка: ${escapeHtml(item.laser_design.text)} · ${escapeHtml(item.laser_design.surface || '')} · ${escapeHtml(item.laser_design.font || '')} · ${Number(item.laser_design.font_size || 0)} px</small>` : '';
-    const model = item.model_url ? `<a class="order-model-link" href="${escapeHtml(item.model_url)}" target="_blank" rel="noopener">Скачать STL: ${escapeHtml(item.model_file || 'модель')}</a>` : (item.model_file ? `<small>Файл модели: ${escapeHtml(item.model_file)}</small>` : '');
+    const model = item.model_url ? `<a class="order-model-link" href="${escapeHtml(item.model_url)}" target="_blank" rel="noopener">Скачать 3D-модель: ${escapeHtml(item.model_file || 'модель')}</a>` : (item.model_file ? `<small>Файл модели: ${escapeHtml(item.model_file)}</small>` : '');
     return `<span class="order-item">${escapeHtml(title)}${item.quantity > 1 ? ` × ${Number(item.quantity)}` : ''}${description}${specs}${dimensions}${laser}${custom}${model}</span>`;
   }).join('<br>') || 'Заказ';
   const workflow = canAssign
@@ -235,7 +235,8 @@ async function uploadCatalogFile(file, slug, kind) {
   if (kind === 'image' && !allowedImages.includes(extension)) throw new Error('Изображение должно быть JPG, PNG, WEBP или SVG.');
   if (file.size > 50 * 1024 * 1024) throw new Error('Максимальный размер файла — 50 МБ.');
   const filePath = `${slug}/${kind}-${Date.now()}.${extension}`;
-  const { error } = await db.storage.from('catalog').upload(filePath, file, { upsert: true, contentType: file.type || undefined });
+  const contentType = kind === 'model' ? 'application/octet-stream' : (file.type || undefined);
+  const { error } = await db.storage.from('catalog').upload(filePath, file, { upsert: true, contentType });
   if (error) throw error;
   return db.storage.from('catalog').getPublicUrl(filePath).data.publicUrl;
 }
