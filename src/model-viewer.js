@@ -1,5 +1,10 @@
 import * as THREE from 'https://esm.sh/three@0.160.0';
 import { STLLoader } from 'https://esm.sh/three@0.160.0/examples/jsm/loaders/STLLoader.js?external=three';
+import { OBJLoader } from 'https://esm.sh/three@0.160.0/examples/jsm/loaders/OBJLoader.js?external=three';
+import { PLYLoader } from 'https://esm.sh/three@0.160.0/examples/jsm/loaders/PLYLoader.js?external=three';
+import { GLTFLoader } from 'https://esm.sh/three@0.160.0/examples/jsm/loaders/GLTFLoader.js?external=three';
+import { ThreeMFLoader } from 'https://esm.sh/three@0.160.0/examples/jsm/loaders/3MFLoader.js?external=three';
+import { FBXLoader } from 'https://esm.sh/three@0.160.0/examples/jsm/loaders/FBXLoader.js?external=three';
 import { OrbitControls } from 'https://esm.sh/three@0.160.0/examples/jsm/controls/OrbitControls.js?external=three';
 import { RoomEnvironment } from 'https://esm.sh/three@0.160.0/examples/jsm/environments/RoomEnvironment.js?external=three';
 
@@ -77,6 +82,16 @@ function addUvs(geometry) {
   return geometry;
 }
 
+function sourceMaterialForGeometry(geometry) {
+  return new THREE.MeshStandardMaterial({
+    color: 0xffffff,
+    vertexColors: Boolean(geometry.getAttribute('color')),
+    side: THREE.DoubleSide,
+    metalness: 0.06,
+    roughness: 0.48
+  });
+}
+
 export function createModelViewer(canvas, { onStatus = () => {} } = {}) {
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(34, 1, 0.01, 100);
@@ -91,11 +106,16 @@ export function createModelViewer(canvas, { onStatus = () => {} } = {}) {
 
   const room = new RoomEnvironment();
   const pmrem = new THREE.PMREMGenerator(renderer);
-  const environmentTarget = pmrem.fromScene(room, 0.04);
-  const environment = environmentTarget.texture;
-  scene.environment = environment;
-  room.dispose();
-  pmrem.dispose();
+  let environmentTarget = null;
+  try {
+    environmentTarget = pmrem.fromScene(room, 0.04);
+    scene.environment = environmentTarget.texture;
+  } catch (error) {
+    console.warn('Studio reflections are unavailable; using direct lights.', error);
+  } finally {
+    room.dispose();
+    pmrem.dispose();
+  }
 
   scene.add(new THREE.HemisphereLight(0xfaf7ec, 0x32352c, 1.5));
   const key = new THREE.DirectionalLight(0xfff7e8, 3.2);
@@ -131,10 +151,8 @@ export function createModelViewer(canvas, { onStatus = () => {} } = {}) {
   scene.add(ring);
 
   const modelRoot = new THREE.Group();
-  modelRoot.rotation.x = -Math.PI / 2;
   scene.add(modelRoot);
-  let geometry = null;
-  let mesh = null;
+  let loadedObject = null;
   let activeTexture = null;
   let activeMaterial = null;
   let currentPreset = 'plastic';
@@ -153,6 +171,14 @@ export function createModelViewer(canvas, { onStatus = () => {} } = {}) {
   controls.update();
 
   function applyMaterial(preset) {
+    if (preset === 'source') {
+      currentPreset = 'source';
+      loadedObject?.traverse((object) => {
+        if (object.isMesh && object.userData.formaSourceMaterial) object.material = object.userData.formaSourceMaterial;
+      });
+      renderer.render(scene, camera);
+      return { key: currentPreset, label: 'Original file material' };
+    }
     const spec = MATERIALS[preset] || MATERIALS.plastic;
     currentPreset = MATERIALS[preset] ? preset : 'plastic';
     activeTexture?.dispose();
@@ -166,33 +192,43 @@ export function createModelViewer(canvas, { onStatus = () => {} } = {}) {
       clearcoat: spec.clearcoat,
       clearcoatRoughness: Math.max(0.08, spec.roughness * 0.5),
       side: THREE.DoubleSide,
-      vertexColors: Boolean(geometry?.hasColors)
+      vertexColors: false
     });
-    if (mesh) mesh.material = activeMaterial;
+    loadedObject?.traverse((object) => {
+      if (!object.isMesh) return;
+      object.material = activeMaterial;
+    });
     renderer.render(scene, camera);
     return { key: currentPreset, label: spec.label };
   }
 
-  function fitModel(nextGeometry) {
-    geometry?.dispose();
-    geometry = addUvs(nextGeometry);
-    geometry.computeVertexNormals();
-    geometry.computeBoundingBox();
-    const center = geometry.boundingBox.getCenter(new THREE.Vector3());
-    geometry.translate(-center.x, -center.y, -center.z);
-    geometry.computeBoundingBox();
-    const size = geometry.boundingBox.getSize(new THREE.Vector3());
-    const scale = 1.34 / Math.max(size.x, size.y, size.z, 0.001);
-    geometry.scale(scale, scale, scale);
-    if (mesh) {
-      modelRoot.remove(mesh);
-      mesh = null;
+  function fitModel(object, isStl = false) {
+    if (!object) throw new Error('No mesh found in this file.');
+    if (isStl) object.rotation.x = -Math.PI / 2;
+    object.traverse((child) => {
+      if (!child.isMesh) return;
+      if (!child.geometry) throw new Error('Mesh geometry is missing.');
+      if (!child.geometry.getAttribute('uv')) addUvs(child.geometry);
+      if (!child.geometry.getAttribute('normal')) child.geometry.computeVertexNormals();
+      child.userData.formaSourceMaterial = child.material;
+      child.castShadow = true;
+      child.receiveShadow = true;
+    });
+    object.updateMatrixWorld(true);
+    const box = new THREE.Box3().setFromObject(object);
+    if (box.isEmpty()) throw new Error('The model contains no visible geometry.');
+    const center = box.getCenter(new THREE.Vector3());
+    const size = box.getSize(new THREE.Vector3());
+    object.position.sub(center);
+    object.scale.multiplyScalar(1.34 / Math.max(size.x, size.y, size.z, 0.001));
+    object.position.y += 0.14;
+    if (loadedObject) {
+      modelRoot.remove(loadedObject);
+      loadedObject.traverse((child) => child.geometry?.dispose());
     }
-    mesh = new THREE.Mesh(geometry, activeMaterial);
-    mesh.position.y = 0.14;
-    mesh.castShadow = true;
-    mesh.receiveShadow = true;
-    modelRoot.add(mesh);
+    loadedObject = object;
+    modelRoot.add(loadedObject);
+    applyMaterial(currentPreset);
     controls.target.set(0, 0.03, 0);
     controls.update();
     canvas.style.display = 'block';
@@ -222,14 +258,39 @@ export function createModelViewer(canvas, { onStatus = () => {} } = {}) {
   render();
 
   return {
-    load(buffer) {
+    async load(buffer, filename = 'model.stl') {
       try {
-        const parsed = new STLLoader().parse(buffer);
-        fitModel(parsed);
+        const extension = String(filename).split('?')[0].split('.').pop().toLowerCase();
+        let object;
+        let isStl = false;
+        if (extension === 'stl') {
+          const geometry = new STLLoader().parse(buffer);
+          object = new THREE.Mesh(geometry, sourceMaterialForGeometry(geometry));
+          isStl = true;
+        } else if (extension === 'obj') {
+          object = new OBJLoader().parse(new TextDecoder().decode(buffer));
+        } else if (extension === 'ply') {
+          const geometry = new PLYLoader().parse(buffer);
+          object = new THREE.Mesh(geometry, sourceMaterialForGeometry(geometry));
+        } else if (extension === 'glb' || extension === 'gltf') {
+          if (extension === 'gltf') {
+            const source = new TextDecoder().decode(buffer);
+            if (/"uri"\s*:\s*"(?!data:)/i.test(source)) throw new Error('External .gltf files need separate texture and buffer files. Upload a self-contained .glb instead.');
+          }
+          const gltf = await new GLTFLoader().parseAsync(buffer, '');
+          object = gltf.scene;
+        } else if (extension === '3mf') {
+          object = new ThreeMFLoader().parse(buffer);
+        } else if (extension === 'fbx') {
+          object = new FBXLoader().parse(buffer, '');
+        } else {
+          throw new Error('Unsupported format. Use STL, OBJ, PLY, GLB, GLTF, 3MF, or FBX.');
+        }
+        fitModel(object, isStl);
         return true;
       } catch (error) {
         onStatus('error', error);
-        return false;
+        throw error;
       }
     },
     setMaterial(preset) {
@@ -240,17 +301,17 @@ export function createModelViewer(canvas, { onStatus = () => {} } = {}) {
     },
     reset() {
       controls.reset();
-      modelRoot.rotation.set(-Math.PI / 2, 0, 0);
+      modelRoot.rotation.set(0, 0, 0);
     },
     dispose() {
       disposed = true;
       cancelAnimationFrame(raf);
       observer.disconnect();
       controls.dispose();
-      geometry?.dispose();
+      loadedObject?.traverse((child) => child.geometry?.dispose());
       activeMaterial?.dispose();
       activeTexture?.dispose();
-      environmentTarget.dispose();
+      environmentTarget?.dispose();
       renderer.dispose();
     }
   };
