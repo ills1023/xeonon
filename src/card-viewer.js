@@ -1,5 +1,5 @@
 import * as THREE from 'https://esm.sh/three@0.160.0';
-import { STLLoader } from 'https://esm.sh/three@0.160.0/examples/jsm/loaders/STLLoader.js?external=three';
+import { STLLoader } from 'https://esm.sh/three@0.160.0/examples/jsm/loaders/STLLoader.js';
 
 const materialSpecs = {
   print: { color: '#d7d3c6', metalness: 0.08, roughness: 0.56, texture: 'filament' },
