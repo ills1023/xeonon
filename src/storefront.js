@@ -22,7 +22,7 @@
   let theme = safeRead('forma-theme-v1', matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
   let favoritesOnly = false;
   const title = p => p.title[lang] || p.title.en;
-  const description = p => p.description[lang] || p.description.en;
+  const description = p => {\n    const value = p.description?.[lang] || p.description?.en || p.description?.ru || '';\n    if (/^(не удалось сохранить товар|could not save product|unable to save product)\\b/i.test(value.trim())) return ({ru:'Описание скоро появится.',en:'Description coming soon.',de:'Beschreibung folgt in Kürze.'})[lang];\n    return value;\n  };
   const categoryLabel = key => words[lang][key] || words.en[key] || key;
   async function loadPublishedProducts(){
     if(!config.supabaseUrl||!config.supabaseAnonKey)return;

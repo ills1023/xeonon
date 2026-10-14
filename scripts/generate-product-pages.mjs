@@ -4,7 +4,7 @@ import {fileURLToPath} from 'node:url';
 
 const root=resolve(fileURLToPath(new URL('..',import.meta.url)));
 const staticProducts=JSON.parse(await readFile(resolve(root,'catalog.json'),'utf8'));
-const siteUrl=(process.env.SITE_URL||'https://forma-object-marketplace.onrender.com').replace(/\/$/,'');
+const siteUrl=(process.env.SITE_URL||'https://forma-object-marketplace-gs4q.onrender.com').replace(/\/$/,'');
 let databaseProducts=[];
 const supabaseUrl=process.env.SUPABASE_URL,supabaseKey=process.env.SUPABASE_ANON_KEY;
 if(supabaseUrl&&supabaseKey){

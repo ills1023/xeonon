@@ -25,7 +25,7 @@ const publicConfig={
 await writeFile(resolve(output,'config.js'),`window.FORMA_CONFIG = ${JSON.stringify(publicConfig)};\n`);
 console.log(`Static storefront built at ${output}`);
 
-const siteUrl=(process.env.SITE_URL||'https://forma-object-marketplace.onrender.com').replace(/\/$/,'');
+const siteUrl=(process.env.SITE_URL||'https://forma-object-marketplace-gs4q.onrender.com').replace(/\/$/,'');
 async function htmlFiles(dir){const entries=await readdir(dir,{withFileTypes:true});const files=[];for(const entry of entries){const full=resolve(dir,entry.name);if(entry.isDirectory())files.push(...await htmlFiles(full));else if(entry.name.endsWith('.html'))files.push(full);}return files;}
 for(const file of await htmlFiles(output)){
   const relative=file.slice(output.length+1).replaceAll('\\','/');
@@ -42,7 +42,7 @@ for(const file of await htmlFiles(output)){
     : `<meta name="robots" content="index,follow,max-image-preview:large"><link rel="canonical" href="${siteUrl}${route}"><meta property="og:url" content="${siteUrl}${route}"><meta property="og:type" content="website"><meta property="og:title" content="${title}"><meta property="og:description" content="${description}">`;
   html=html.replace('</head>',`${headBits}</head>`);
   if(relative==='index.html'){
-    const organization={"@context":"https://schema.org","@type":"Organization",name:"FORMA Object Lab",url:`${siteUrl}/`,logo:`${siteUrl}/images/architect-miniature.svg`};
+    const organization={"@context":"https://schema.org","@type":"Organization",name:"FORMA Object Lab",url:`${siteUrl}/`,logo:`${siteUrl}/images/architect-miniature.webp`};
     const website={"@context":"https://schema.org","@type":"WebSite",name:"FORMA Object Lab",url:`${siteUrl}/`,inLanguage:["ru","de","en"]};
     html=html.replace('</head>',`<script type="application/ld+json">${JSON.stringify(organization)}</script><script type="application/ld+json">${JSON.stringify(website)}</script></head>`);
   }

@@ -11,7 +11,7 @@ services:
       - key: SUPABASE_ANON_KEY
         sync: false
       - key: SITE_URL
-        value: https://forma-object-marketplace.onrender.com
+        value: https://forma-object-marketplace-gs4q.onrender.com
     headers:
       - path: /*
         name: X-Content-Type-Options
