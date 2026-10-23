@@ -219,8 +219,12 @@ export function createModelViewer(canvas, { onStatus = () => {} } = {}) {
     if (box.isEmpty()) throw new Error('The model contains no visible geometry.');
     const center = box.getCenter(new THREE.Vector3());
     const size = box.getSize(new THREE.Vector3());
-    object.position.sub(center);
-    object.scale.multiplyScalar(1.34 / Math.max(size.x, size.y, size.z, 0.001));
+    const scale = 1.34 / Math.max(size.x, size.y, size.z, 0.001);
+    // Scale the centering offset together with the model. Otherwise files whose
+    // geometry is far from the origin (common with exported STL assemblies)
+    // shift their separate parts apart in the product viewer.
+    object.position.sub(center).multiplyScalar(scale);
+    object.scale.multiplyScalar(scale);
     object.position.y += 0.14;
     if (loadedObject) {
       modelRoot.remove(loadedObject);
