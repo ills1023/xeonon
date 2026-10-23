@@ -8,7 +8,7 @@ if(!output.startsWith(root+sep))throw new Error('Build output must stay inside t
 await import('./generate-product-pages.mjs');
 await rm(output,{recursive:true,force:true});
 await mkdir(output,{recursive:true});
-for(const path of ['index.html','product.html','team.html','404.html','style.css','product.css','catalog.json','images','src/storefront.js','src/card-viewer.js','src/model-viewer.js','src/product-page.js','src/team.js','products'])
+for(const path of ['index.html','product.html','studio.html','laser.html','team.html','404.html','style.css','product.css','studio.css','catalog.json','images','src/storefront.js','src/card-viewer.js','src/model-viewer.js','src/product-page.js','src/team.js','src/studio.js','src/laser.js','products'])
   await cp(resolve(root,path),resolve(output,path),{recursive:true,force:true});
 let localConfig={};
 try {
@@ -48,7 +48,7 @@ for(const file of await htmlFiles(output)){
   }
   await writeFile(file,html);
 }
-const sitemapPages=['/'];
+const sitemapPages=['/','/studio.html','/laser.html'];
 for(const file of await htmlFiles(resolve(output,'products'))){
   const relative=file.slice(output.length+1).replaceAll('\\','/');
   sitemapPages.push(`/${relative.replace(/index\.html$/,'')}`);
